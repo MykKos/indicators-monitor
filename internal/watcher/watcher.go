@@ -95,6 +95,9 @@ func tgbots() TgBots {
 
 func (w *Watcher) Start() {
 	for _, token := range w.Tokens {
+		if token == "" {
+			continue
+		}
 		go w.Signals(token)
 	}
 }

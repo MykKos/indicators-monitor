@@ -241,7 +241,7 @@ func SellMacd(tokens, tf string, macdLine []*indicators.MACDLine) bool {
 	if lastMacd.SignalLineValue.EMA < lastMacd.MainLineValue.EMA {
 		return false
 	}
-	if prelast.SignalLineValue.EMA > lastMacd.MainLineValue.EMA {
+	if prelast.SignalLineValue.EMA > prelast.MainLineValue.EMA {
 		return false
 	}
 	histAge := HistAge(lastMacd.HistogramValue, prelast.HistogramValue)
@@ -267,7 +267,7 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 	if lastMacd.SignalLineValue.EMA > lastMacd.MainLineValue.EMA {
 		return false
 	}
-	if prelast.SignalLineValue.EMA < lastMacd.MainLineValue.EMA {
+	if prelast.SignalLineValue.EMA < prelast.MainLineValue.EMA {
 		return false
 	}
 	histAge := HistAge(lastMacd.HistogramValue, prelast.HistogramValue)

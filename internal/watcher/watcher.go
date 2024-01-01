@@ -112,9 +112,11 @@ func (w *Watcher) Signals(token string) {
 func (w *Watcher) WatchToken(token string) bool {
 	ms := &MACDSignal{}
 
-	ms.MACD5 = w.SearchTF(token, models.FiveMinuteTF())
-	ms.MACD60 = w.SearchTF(token, models.OneHourTF())
-	ms.MACD1440 = w.SearchTF(token, models.OneDayTF())
+	var last5 float64
+
+	ms.MACD5, last5 = w.SearchTF(token, models.FiveMinuteTF())
+	ms.MACD60, _ = w.SearchTF(token, models.OneHourTF())
+	ms.MACD1440, _ = w.SearchTF(token, models.OneDayTF())
 
 	macd5 := ms.MACD5.MACDLine()
 	macd60 := ms.MACD60.MACDLine()
@@ -150,12 +152,12 @@ func (w *Watcher) WatchToken(token string) bool {
 		}
 	}
 
-	if _, ok := w.Limiters[token].Signals[time.Now().String()]; ok {
+	if _, ok := w.Limiters[token].Signals[fmt.Sprint(last5)]; ok {
 		w.Unlock()
 		return false
 	}
 
-	w.Limiters[token].Signals[time.Now().String()] = struct{}{}
+	w.Limiters[token].Signals[fmt.Sprint(last5)] = struct{}{}
 
 	w.Unlock()
 
@@ -187,8 +189,9 @@ func metricPoint(token, tf, signal string, macd *indicators.MACDLine) metrics.Po
 	return pt
 }
 
-func (w *Watcher) SearchTF(token string, tf models.TimeFrame) *indicators.MACD {
+func (w *Watcher) SearchTF(token string, tf models.TimeFrame) (*indicators.MACD, float64) {
 	prices := w.KCS.GetTokenPrices(token, tf)
+	lastPrice := prices.Prices[len(prices.Prices)-1]
 
 	indprices := w.IndicatorsPrices(prices.Prices)
 
@@ -198,7 +201,7 @@ func (w *Watcher) SearchTF(token string, tf models.TimeFrame) *indicators.MACD {
 		SignalLine: indicators.EMASetup{Period: 9, Smooth: 9},
 	})
 
-	return macd
+	return macd, lastPrice.Timestamp
 }
 
 func (w *Watcher) IndicatorsPrices(prices []models.PriceValues) []indicators.Price {

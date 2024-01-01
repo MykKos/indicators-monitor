@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	MRAZBPm = "154800244"
+	MRAZBPm       = "154800244"
+	CEXSigChannel = "-1002141332914"
 )
 
 type (
@@ -44,7 +45,7 @@ func (w *Watcher) SendSignal(token string, ms *MACDSignal) {
 	msgText := fmt.Sprintf("%s\n\n%s", headerLine, macdLine)
 
 	m, err := w.SignalChannel.SendMessage(tg.TelegramMessage{
-		Channel: MRAZBPm,
+		Channel: CEXSigChannel,
 		Text:    msgText,
 	})
 
@@ -63,7 +64,7 @@ func macdline(signal, macdtf string, macd *indicators.MACD) string {
 		escaped(fmt.Sprintf("%.2f", lastMacd.SignalLineValue.EMA)),
 	)
 	line3 := fmt.Sprintf(
-		"Histogram direction: %s\\(%s —\\> %s\\)",
+		"Histogram direction: *%s*\\(%s \\-\\> %s\\)",
 		HistAge(lastMacd.HistogramValue, prelast.HistogramValue),
 		escaped(fmt.Sprintf("%.2f", prelast.HistogramValue.EMA)),
 		escaped(fmt.Sprintf("%.2f", lastMacd.HistogramValue.EMA)),

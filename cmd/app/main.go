@@ -14,7 +14,9 @@ func main() {
 	// 	"OP",
 	// }).Start()
 
-	watcher.NewWatcher(readTokens())
+	tokens := readTokens()
+
+	watcher.NewWatcher(tokens).Start()
 
 	<-block
 }

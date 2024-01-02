@@ -57,7 +57,7 @@ func macdline(signal, macdtf string, macd *indicators.MACD) string {
 	lastMacd := macdLine[len(macdLine)-1]
 	prelast := macdLine[len(macdLine)-2]
 
-	line1 := fmt.Sprintf("*MACD for %s*", macdtf)
+	line1 := fmt.Sprintf("*MACD for %s* \\(%s\\)", macdtf, signal)
 	line2 := fmt.Sprintf(
 		"MACD line position: %s, Signal line position: %s",
 		escaped(fmt.Sprintf("%.2f", lastMacd.MainLineValue.EMA)),

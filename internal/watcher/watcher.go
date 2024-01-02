@@ -7,6 +7,8 @@ import (
 	"indicators-monitor/internal/metrics/influx"
 	"indicators-monitor/internal/tg"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -32,6 +34,11 @@ const (
 	BuySignal  = "buy"
 	SellSignal = "sell"
 	NoSignal   = "no signal"
+
+	SellStrategy = "sell"
+	BuyStrategy  = "buy"
+
+	MACDStrategy = "macd"
 )
 
 type (
@@ -52,6 +59,38 @@ type (
 	SignalLimiter struct {
 		Token   string
 		Signals map[string]struct{}
+	}
+
+	TradingStrategy struct {
+		Type      string // buy, sell
+		Rule      string // macd, etc
+		Condition string
+	}
+)
+
+var (
+	SellOnTrendChange = TradingStrategy{
+		Type:      SellStrategy,
+		Rule:      MACDStrategy,
+		Condition: "EMA > 0",
+	}
+
+	SellByTrend = TradingStrategy{
+		Type:      SellStrategy,
+		Rule:      MACDStrategy,
+		Condition: "EMA < 0",
+	}
+
+	BuyOnTrendChange = TradingStrategy{
+		Type:      BuyStrategy,
+		Rule:      MACDStrategy,
+		Condition: "EMA < 0",
+	}
+
+	BuyByTrend = TradingStrategy{
+		Type:      BuyStrategy,
+		Rule:      MACDStrategy,
+		Condition: "EMA > 0",
 	}
 )
 
@@ -232,10 +271,38 @@ func MacdType(token, tf string, macdLine []*indicators.MACDLine) string {
 	return NoSignal
 }
 
+func MacdRuleAnalyze(ts TradingStrategy, line *indicators.MACDLine) bool {
+	rl := strings.Split(ts.Condition, " ")
+	if len(rl) < 3 {
+		return false
+	}
+	compValue := 0.0
+
+	switch rl[0] {
+	case "EMA":
+		compValue = line.MainLineValue.EMA
+	}
+
+	destValue, _ := strconv.ParseFloat(rl[2], 64)
+
+	switch rl[1] {
+	case "<":
+		return compValue < destValue
+	case ">":
+		return compValue > destValue
+	case "=":
+		return compValue == destValue
+	}
+	return false
+}
+
 func SellMacd(tokens, tf string, macdLine []*indicators.MACDLine) bool {
 	lastMacd := macdLine[len(macdLine)-1]
 	prelast := macdLine[len(macdLine)-2]
-	if lastMacd.MainLineValue.EMA < 0 {
+	// if lastMacd.MainLineValue.EMA < 0 {
+	// 	return false
+	// }
+	if !MacdRuleAnalyze(SellByTrend, lastMacd) {
 		return false
 	}
 	if lastMacd.SignalLineValue.EMA < lastMacd.MainLineValue.EMA {
@@ -261,7 +328,10 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 		prelast.MainLineValue.EMA, prelast.SignalLineValue.EMA, prelast.HistogramValue.EMA,
 		HistAge(lastMacd.HistogramValue, prelast.HistogramValue),
 	)
-	if lastMacd.MainLineValue.EMA > 0 {
+	// if lastMacd.MainLineValue.EMA > 0 {
+	// 	return false
+	// }
+	if !MacdRuleAnalyze(BuyByTrend, lastMacd) {
 		return false
 	}
 	if lastMacd.SignalLineValue.EMA > lastMacd.MainLineValue.EMA {

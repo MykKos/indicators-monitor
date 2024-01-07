@@ -370,7 +370,9 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 }
 
 func MaxMacd(macdLine []*indicators.MACDLine) *indicators.MACDLine {
-	max := &indicators.MACDLine{}
+	max := &indicators.MACDLine{
+		MainLineValue: &indicators.EmaPoint{},
+	}
 	for _, ln := range macdLine {
 		if ln.MainLineValue.EMA > max.MainLineValue.EMA {
 			max = ln
@@ -381,7 +383,9 @@ func MaxMacd(macdLine []*indicators.MACDLine) *indicators.MACDLine {
 }
 
 func MinMacd(macdLine []*indicators.MACDLine) *indicators.MACDLine {
-	min := &indicators.MACDLine{}
+	min := &indicators.MACDLine{
+		MainLineValue: &indicators.EmaPoint{},
+	}
 	for _, ln := range macdLine {
 		if ln.MainLineValue.EMA < min.MainLineValue.EMA {
 			min = ln

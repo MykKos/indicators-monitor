@@ -340,7 +340,7 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 	switch tf {
 	case FiveMinuteTF:
 	default:
-		if !MacdRuleAnalyze(SellByTrend, lastMacd) {
+		if !MacdRuleAnalyze(BuyByTrend, lastMacd) {
 			return false
 		}
 	}
@@ -357,10 +357,27 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 	return true
 }
 
-// func MaxMacd(macdLine []*indicators.MACDLine) *indicators.MACDLine{
-// 	max := &indicators.MACDLine{}
-// 	for _, ln :=
-// }
+func MaxMacd(macdLine []*indicators.MACDLine) *indicators.MACDLine {
+	max := &indicators.MACDLine{}
+	for _, ln := range macdLine {
+		if ln.MainLineValue.EMA > max.MainLineValue.EMA {
+			max = ln
+		}
+	}
+
+	return max
+}
+
+func MinMacd(macdLine []*indicators.MACDLine) *indicators.MACDLine {
+	min := &indicators.MACDLine{}
+	for _, ln := range macdLine {
+		if ln.MainLineValue.EMA < min.MainLineValue.EMA {
+			min = ln
+		}
+	}
+
+	return min
+}
 
 func HistAge(source *indicators.EmaPoint, prev *indicators.EmaPoint) string {
 	switch {

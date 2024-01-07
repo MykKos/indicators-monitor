@@ -39,6 +39,8 @@ const (
 	BuyStrategy  = "buy"
 
 	MACDStrategy = "macd"
+
+	FiveMinuteTF = "5m"
 )
 
 type (
@@ -302,8 +304,12 @@ func SellMacd(tokens, tf string, macdLine []*indicators.MACDLine) bool {
 	// if lastMacd.MainLineValue.EMA < 0 {
 	// 	return false
 	// }
-	if !MacdRuleAnalyze(SellByTrend, lastMacd) {
-		return false
+	switch tf {
+	case FiveMinuteTF:
+	default:
+		if !MacdRuleAnalyze(SellByTrend, lastMacd) {
+			return false
+		}
 	}
 	if lastMacd.SignalLineValue.EMA < lastMacd.MainLineValue.EMA {
 		return false
@@ -331,8 +337,12 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 	// if lastMacd.MainLineValue.EMA > 0 {
 	// 	return false
 	// }
-	if !MacdRuleAnalyze(BuyByTrend, lastMacd) {
-		return false
+	switch tf {
+	case FiveMinuteTF:
+	default:
+		if !MacdRuleAnalyze(SellByTrend, lastMacd) {
+			return false
+		}
 	}
 	if lastMacd.SignalLineValue.EMA > lastMacd.MainLineValue.EMA {
 		return false
@@ -346,6 +356,11 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 	}
 	return true
 }
+
+// func MaxMacd(macdLine []*indicators.MACDLine) *indicators.MACDLine{
+// 	max := &indicators.MACDLine{}
+// 	for _, ln :=
+// }
 
 func HistAge(source *indicators.EmaPoint, prev *indicators.EmaPoint) string {
 	switch {

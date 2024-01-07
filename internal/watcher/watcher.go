@@ -340,7 +340,13 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 	switch tf {
 	case FiveMinuteTF:
 	default:
-		if !MacdRuleAnalyze(BuyByTrend, lastMacd) {
+		// if !MacdRuleAnalyze(BuyByTrend, lastMacd) {
+		// 	return false
+		// }
+		mline := MaxMacd(macdLine)
+		onethird := mline.MainLineValue.EMA / 3
+		condition := onethird
+		if lastMacd.MainLineValue.EMA > condition {
 			return false
 		}
 	}

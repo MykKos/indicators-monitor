@@ -60,14 +60,14 @@ func macdline(signal, macdtf string, macd *indicators.MACD) string {
 	line1 := fmt.Sprintf("*MACD for %s* \\(%s\\)", macdtf, signal)
 	line2 := fmt.Sprintf(
 		"MACD line position: %s, Signal line position: %s",
-		escaped(fmt.Sprintf("%.2f", lastMacd.MainLineValue.EMA)),
-		escaped(fmt.Sprintf("%.2f", lastMacd.SignalLineValue.EMA)),
+		escaped(fmt.Sprintf("%.4f", lastMacd.MainLineValue.EMA)),
+		escaped(fmt.Sprintf("%.4f", lastMacd.SignalLineValue.EMA)),
 	)
 	line3 := fmt.Sprintf(
 		"Histogram direction: *%s*\\(%s \\-\\> %s\\)",
 		HistAge(lastMacd.HistogramValue, prelast.HistogramValue),
-		escaped(fmt.Sprintf("%.2f", prelast.HistogramValue.EMA)),
-		escaped(fmt.Sprintf("%.2f", lastMacd.HistogramValue.EMA)),
+		escaped(fmt.Sprintf("%.4f", prelast.HistogramValue.EMA)),
+		escaped(fmt.Sprintf("%.4f", lastMacd.HistogramValue.EMA)),
 	)
 
 	return fmt.Sprintf("%s\n\n%s\n%s", line1, line2, line3)

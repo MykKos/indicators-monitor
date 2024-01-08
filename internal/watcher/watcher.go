@@ -41,6 +41,14 @@ const (
 	MACDStrategy = "macd"
 
 	FiveMinuteTF = "5m"
+
+	Precision  = 0.001
+	PrecDigits = 4
+
+	GeneralPercent = 0.4
+	FiveMinPercent = 0.5
+
+	PrevPoints = 5
 )
 
 type (
@@ -301,26 +309,39 @@ func MacdRuleAnalyze(ts TradingStrategy, line *indicators.MACDLine) bool {
 func SellMacd(tokens, tf string, macdLine []*indicators.MACDLine) bool {
 	lastMacd := macdLine[len(macdLine)-1]
 	prelast := macdLine[len(macdLine)-2]
+
+	prevpts := macdLine[len(macdLine)-PrevPoints-1:]
 	// if lastMacd.MainLineValue.EMA < 0 {
 	// 	return false
 	// }
+	mline := MinMacd(macdLine)
+	var cond float64
 	switch tf {
 	case FiveMinuteTF:
+		cond = mline.MainLineValue.EMA * FiveMinPercent
 	default:
 		// if !MacdRuleAnalyze(SellByTrend, lastMacd) {
 		// 	return false
 		// }
-		mline := MinMacd(macdLine)
-		onethird := mline.MainLineValue.EMA / 3
-		condition := onethird
-		if lastMacd.MainLineValue.EMA < condition {
-			return false
-		}
+
+		// mline := MinMacd(macdLine)
+		// onethird := mline.MainLineValue.EMA / 3
+		// condition := onethird
+		// if lastMacd.MainLineValue.EMA < condition {
+		// 	return false
+		// }
+		cond = mline.MainLineValue.EMA * GeneralPercent
+	}
+	if lastMacd.MainLineValue.EMA < cond {
+		return false
 	}
 	if lastMacd.SignalLineValue.EMA < lastMacd.MainLineValue.EMA {
 		return false
 	}
-	if prelast.SignalLineValue.EMA > prelast.MainLineValue.EMA {
+	// if prelast.SignalLineValue.EMA > prelast.MainLineValue.EMA {
+	// 	return false
+	// }
+	if allBigger(prevpts) {
 		return false
 	}
 	histAge := HistAge(lastMacd.HistogramValue, prelast.HistogramValue)
@@ -333,6 +354,9 @@ func SellMacd(tokens, tf string, macdLine []*indicators.MACDLine) bool {
 func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 	lastMacd := macdLine[len(macdLine)-1]
 	prelast := macdLine[len(macdLine)-2]
+
+	prevpts := macdLine[len(macdLine)-PrevPoints-1:]
+
 	fmt.Printf(
 		"[%s] TF: %s. Last: %.6f | %.6f | %.6f, Prelast: %.6f | %.6f | %.6f. Age: %s\n",
 		token, tf,
@@ -343,23 +367,33 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 	// if lastMacd.MainLineValue.EMA > 0 {
 	// 	return false
 	// }
+	mline := MaxMacd(macdLine)
+	var cond float64
 	switch tf {
 	case FiveMinuteTF:
+		cond = mline.MainLineValue.EMA * FiveMinPercent
 	default:
 		// if !MacdRuleAnalyze(BuyByTrend, lastMacd) {
 		// 	return false
 		// }
-		mline := MaxMacd(macdLine)
-		onethird := mline.MainLineValue.EMA / 3
-		condition := onethird
-		if lastMacd.MainLineValue.EMA > condition {
-			return false
-		}
+
+		// onethird := mline.MainLineValue.EMA / 3
+		// condition := onethird
+		// if lastMacd.MainLineValue.EMA > condition {
+		// 	return false
+		// }
+		cond = mline.MainLineValue.EMA * GeneralPercent
+	}
+	if lastMacd.MainLineValue.EMA > cond {
+		return false
 	}
 	if lastMacd.SignalLineValue.EMA > lastMacd.MainLineValue.EMA {
 		return false
 	}
-	if prelast.SignalLineValue.EMA < prelast.MainLineValue.EMA {
+	// if prelast.SignalLineValue.EMA < prelast.MainLineValue.EMA {
+	// 	return false
+	// }
+	if allSmaller(prevpts) {
 		return false
 	}
 	histAge := HistAge(lastMacd.HistogramValue, prelast.HistogramValue)
@@ -367,6 +401,24 @@ func BuyMacd(token, tf string, macdLine []*indicators.MACDLine) bool {
 		return false
 	}
 	return true
+}
+
+func allSmaller(comp []*indicators.MACDLine) bool {
+	for _, vl := range comp {
+		if vl.SignalLineValue.EMA > vl.MainLineValue.EMA {
+			return false
+		}
+	}
+	return true
+}
+
+func allBigger(comp []*indicators.MACDLine) bool {
+	for _, vl := range comp {
+		if vl.SignalLineValue.EMA < vl.MainLineValue.EMA {
+			return true
+		}
+	}
+	return false
 }
 
 func MaxMacd(macdLine []*indicators.MACDLine) *indicators.MACDLine {
@@ -432,9 +484,9 @@ func RedAge(source *indicators.EmaPoint, prev *indicators.EmaPoint) string {
 func PrecCompare(source, dest float64) string {
 	diff := source - dest
 	switch {
-	case diff < -0.1:
+	case diff < -Precision:
 		return Lower
-	case diff > 0.1:
+	case diff > Precision:
 		return Bigger
 	}
 	return Equals

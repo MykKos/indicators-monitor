@@ -43,10 +43,10 @@ const (
 	Precision  = 0.001
 	PrecDigits = 4
 
-	GeneralPercent = 0.4
-	FiveMinPercent = 0.5
+	GeneralPercent = 0.3
+	FiveMinPercent = 0.2
 
-	PrevPoints = 5
+	PrevPoints = 3
 )
 
 type (
